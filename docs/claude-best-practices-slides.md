@@ -29,67 +29,13 @@ section {
 
 ---
 
-## 什么是 `CLAUDE.md`？
+## 什么是 [`CLAUDE.md`](https://www.anthropic.com/engineering/claude-code-best-practices)？
 Claude Code 在启动会话时会**自动读取并加载其内容到上下文**，作为项目专属的“记忆”和“指令集”。
 - 项目的开发手册
 - Claude 的 Memory
   可以通过 `# New Rule` 在某个session里动态加入新的Rule到项目 `CLAUDE.md`
-- User 定义的一些常用的指令
-  `ai-daily-stats`
-
----
-```markdown
-# AI Daily Stats Rule
-**Rule name:** `ai-daily-stats [<date>]`
-
-**Description:** Run git statistics to analyze AI assistant (Claude Code) contributions to the codebase for a specific date. If no date is provided, uses today's date.
-
-**Parameters:**
-- `<date>` (optional): Date in YYYY-MM-DD format. If not provided, uses today's date.
-
-**Date validation:**
-The date parameter must match the pattern YYYY-MM-DD. If invalid format is provided, the command will output an error message.
-
-**Commands to run:**
-<code>
-# AI Daily Stats script with date validation
-#!/bin/bash
-
-# Function to validate date format YYYY-MM-DD
-validate_date() {
-    if [[ ! $1 =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-        echo -e "\033[0;31mError: wrong date format, use format YYYY-MM-DD\033[0m" >&2
-        exit 1
-    fi
-}
-
-# Get date from parameter or use today
-if [ $# -eq 0 ]; then
-    TARGET_DATE=$(date +%Y-%m-%d)
-else
-    validate_date "$1"
-    TARGET_DATE="$1"
-fi
-
-# Count commits with Claude Code signature from target date
-git log --since="$TARGET_DATE 00:00:00" --until="$TARGET_DATE 23:59:59" --grep="Co-Authored-By: Claude <noreply@anthropic.com>" --oneline | wc -l
-
-# Show commits with Claude Code signature from target date
-git log --since="$TARGET_DATE 00:00:00" --until="$TARGET_DATE 23:59:59" --grep="Co-Authored-By: Claude <noreply@anthropic.com>" --oneline
-
-# Calculate total lines added/deleted for Claude Code commits from target date
-git log --since="$TARGET_DATE 00:00:00" --until="$TARGET_DATE 23:59:59" --grep="Co-Authored-By: Claude <noreply@anthropic.com>" --numstat | awk 'NF==3 {plus += $1; minus += $2} END {print "Target date added: " plus, "Target date deleted: " minus, "Target date net: " plus-minus}'
-
-# Show detailed stat summary for each Claude Code commit from target date
-git log --since="$TARGET_DATE 00:00:00" --until="$TARGET_DATE 23:59:59" --grep="Co-Authored-By: Claude <noreply@anthropic.com>" --stat --oneline
-</code>
-**Summary format:**
-- Number of commits today
-- Total lines added/deleted today
-- Net change today
-- Brief description of today's commits (features, refactoring, etc.)
-
-```
+- 自定义一些常用的指令
+  [`ai-daily-stats`](./ai-daily-stats-rule.md)
 
 ---
 
@@ -98,7 +44,7 @@ Claude Code 在启动会话时会**自动读取并加载其内容到上下文**�
 - 项目的开发手册
 - Claude 的 Memory
   可以通过 `# New Rule` 在某个session里动态加入新的Rule到项目 `CLAUDE.md`
-- User 定义的一些常用的指令
+- 自定义一些常用的指令
   `ai-daily-stats`
 - 个性化
   - 代码风格（如 PEP 604/585）
@@ -113,16 +59,14 @@ Claude Code 在启动会话时会**自动读取并加载其内容到上下文**�
 
 在 prompt 中使用 `@文件名`（如 `@src/main.py`），Claude Code 会**自动将该文件的完整内容注入上下文**。
 
-- **精准引用**：基于真实代码做修改或解释  
-- **保持上下文完整**：包括 import、类定义、注释等
-
-> ⚠️ 文件名含空格时需用引号包裹（如 `@"my file.py"`）。
+- **精准引用**：直接定位具体的模块
+- **上下文完整**：Claude 会去读取必要的 `import`
 
 ---
 
 ## 开发新项目
 
-**提前写好 `CLAUDE.md`**，假设现在要开发一个“智能文档分析项目”：
+**提前写好 `CLAUDE.md`**，假设现在要开发一个“智能文档分析”项目：
 
 ```markdown
 # SmartDoc Analyzer - 开发规范
@@ -196,27 +140,34 @@ project-name/
 
 Claude Code **默认无权直接修改你的文件系统**。所有可能修改系统的操作（如写文件、执行 shell 命令）都**需要你显式批准**。
 
-* 你也可以通过 `/permissions` 查看和管理权限规则
-
 建议在项目根目录运行 `claude`，这样它能正确读取 `CLAUDE.md` 并将权限范围限定在当前目录内。
 
+* 你也可以通过 `/permissions` 查看和管理权限规则
+* 或者在 `./claude/settings.json` 里[配置](https://docs.claude.com/en/docs/claude-code/settings) 
+* *YOLO mode*: `claude --dangerously-skip-permissions` bypass 所有权限检查
+
+---
+**常用命令：**
+
+* `claude --resume <session-id>`：恢复从当前项目退出的会话（session-id 可选）
+* `claude` 进入某个 Session 以后：
+  - `/config`：个性化设置
+  - `/context`：查看当前 Session [上下文使用情况](./context.md)
+  - `/clear` (`/new`, `/reset`)：清除历史对话和上下文
+  - `/rewind`：恢复 对话 / 代码 到当前Session的某个节点（Bash操作不可被reverse）
+  - `/export`：导出当前会话记录，到 clipboard / 文件
 ---
 
 ## 启动 Claude 开发会话
 
-配置环境变量[big-model]()：
+配置环境变量 或者 修改[`.claude/settings.json`](https://docs.bigmodel.cn/cn/coding-plan/tool/claude)：
 
 ```bash
-export ANTHROPIC_BASE_URL=...
+export ANTHROPIC_BASE_URL=https://open.bigmodel.cn/api/anthropic··
 export ANTHROPIC_AUTH_TOKEN=sk-...
 ```
 
-常用命令：
-
-* `claude --resume`：恢复从当前项目退出的会话 <补充链接>
-* `/export`：导出当前会话记录，<下一个部分有我导出的修复bug的session>
-
-**Prompt**: 
+**示例Prompt**: 
 > 根据 @CLAUDE.md，给出你关于实现该项目的 Plans。
 
 
@@ -227,30 +178,35 @@ export ANTHROPIC_AUTH_TOKEN=sk-...
 **案例**：问数的query扩写模块，定位到 [`org_query_expand`](http://10.32.0.123/ai_bigdata/algorithm/hgt-graph/-/blob/xy-dev/hgt_graph/org_graph/expand_query_with_org_details.py#L197) 函数中遗漏了 LLM 调用失败的异常处理。
 
 **具体希望Claude完成**：
-- 读 `@hgt_graph/org_graph/expand_query_with_org_details.py` 代码
+- 读 @hgt_graph/org_graph/expand_query_with_org_details.py 代码
 - 说明希望 Claude 增加异常处理和超时机制
-- 最后 `add` 修改并 `commit` 符合 [Conventional Commits ]() 的提交信息
+- 最后 add 修改并 commit 符合 [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) 的提交信息
 
-**Prompt**：
+**示例Prompt**：
 
-> `expand_query` 函数中遗漏了 LLM 调用失败的异常处理，请帮忙补充并生成提交信息。
+> `org_query_expand` 函数中遗漏了 LLM 调用失败的异常处理，TODO: 1. 加上try-except异常处理；2. _config.py中LLM config加入timeout；3. git add and commit changes。
+- [历史Session](./2025-10-21-hgtgraphorggraphexpandquerywithorgdetails.md)
+---
+
+## 场景三：快速上手不熟悉的项目
+
+举例：[FastAPI](https://fastapi.tiangolo.com/)
+
+**示例Prompt**：
+
+> 我刚 clone 了 FastAPI 项目，请用不超过 200 字说明其核心模块划分，并指出从哪个文件开始阅读最有助于理解请求处理流程。要求：语言使用简体中文。
+
+Claude 的[回答](./2025-10-22-clone-fastapi-200.md)
 
 ---
 
-## 场景三：快速上手陌生开源项目
+## 参考链接
+[1] [Claude Code: Best practices for agentic coding](https://www.anthropic.com/engineering/claude-code-best-practices)
 
-**推荐项目**：[FastAPI](https://fastapi.tiangolo.com/)
+[2] [智谱AI开放文档](https://docs.bigmodel.cn/cn/coding-plan/tool/claude)
 
-* 现代、高性能的 Python Web 框架
-* 代码结构清晰，文档完善，社区活跃
-* 非常适合作为学习“如何组织中大型 Python 项目”的范例
+[3] [What is the --resume Flag in Claude Code](https://claudelog.com/faqs/what-is-resume-flag-in-claude-code/)
 
-**高效提问 Prompt**：
+[4] [Claude Code settings](https://docs.claude.com/en/docs/claude-code/settings)
 
-> “我刚 clone 了 FastAPI 项目，请用不超过 200 字说明其核心模块划分，并指出从哪个文件开始阅读最有助于理解请求处理流程。”
-
-Claude 通常会指出：
-
-* 入口：`fastapi/applications.py`
-* 核心：`fastapi/routing.py` 和 `fastapi/dependencies.py`
-* 建议先看 `examples/` 目录中的最小可运行示例
+[5] [Claude Code dangerously-skip-permissions: When to Use It (And When You Absolutely Shouldn't)](https://www.ksred.com/claude-code-dangerously-skip-permissions-when-to-use-it-and-when-you-absolutely-shouldnt/)

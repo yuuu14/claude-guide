@@ -1,7 +1,29 @@
 [project]
 name = "claude-guide"
 version = "0.1.0"
-description = "Add your description here"
+description = "Claude Code best practices presentation"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+    "pytest>=7.0.0",
+]
+present = [
+    "marp-cli>=3.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
