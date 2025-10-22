@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  marp-server:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./docs:/app/docs
+      - ./dist:/app/dist
+    command: ["marp", "--server", "docs/", "--port", "8080"]
+    restart: unless-stopped
+
+  marp-watch:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./docs:/app/docs
+      - ./dist:/app/dist
+    command: ["marp", "--server", "docs/", "--port", "8080", "--watch"]
+    restart: unless-stopped
+    profiles:
+      - watch

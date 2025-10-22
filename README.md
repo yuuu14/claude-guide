@@ -78,3 +78,73 @@ marp --pptx docs/claude-best-practices-slides.md -o slides.pptx
 ./serve.sh html     # Export to HTML
 ./serve.sh pdf      # Export to PDF
 ```
+
+## Docker/Podman Setup
+
+You can run the Marp server in a container using Docker or Podman.
+
+### Building the container
+
+```bash
+# Using Docker
+docker build -t claude-guide-marp .
+
+# Using Podman
+podman build -t claude-guide-marp .
+```
+
+### Running the container
+
+```bash
+# Using Docker
+docker run -p 8080:8080 -v $(pwd)/docs:/app/docs claude-guide-marp
+
+# Using Podman
+podman run -p 8080:8080 -v $(pwd)/docs:/app/docs claude-guide-marp
+```
+
+### Using Docker Compose
+
+```bash
+# Start the server (without auto-reload)
+docker compose up marp-server
+
+# Start with auto-reload
+docker compose --profile watch up marp-watch
+
+# Run in background
+docker compose up -d marp-server
+
+# Stop the server
+docker compose down
+```
+
+### Using Podman Compose
+
+```bash
+# Install podman-compose if not already installed
+pip install podman-compose
+
+# Start the server (without auto-reload)
+podman compose up marp-server
+
+# Start with auto-reload
+podman compose --profile watch up marp-watch
+
+# Run in background
+podman compose up -d marp-server
+
+# Stop the server
+podman compose down
+```
+
+### Container access
+
+Once the container is running, access your slides at:
+- **Slides**: http://localhost:8080/claude-best-practices-slides.html
+- **Presenter view**: http://localhost:8080/claude-best-practices-slides.html?present=true
+- **Other docs**: Any other markdown files in `docs/` will be available as web pages
+
+### Volume mounting
+
+The container mounts the `docs/` directory, so any changes to your markdown files will be reflected immediately (use the watch profile for auto-reload). The `dist/` directory is also mounted for any exported files.
