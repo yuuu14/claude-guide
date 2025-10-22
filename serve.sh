@@ -28,6 +28,7 @@ case $MODE in
     "server")
         echo "🚀 Starting Marp live server..."
         echo "🌐 Slides will be available at http://localhost:8080/claude-best-practices-slides.html"
+        echo "🎯 Presenter view: Add ?present=true to the URL for presenter mode"
         echo "📄 Other markdown files will be available as scrollable pages"
         echo "⏹️  Press Ctrl+C to stop the server"
         marp --server docs/ --port 8080
@@ -35,6 +36,7 @@ case $MODE in
     "watch")
         echo "🚀 Starting Marp in watch mode..."
         echo "🌐 Slides will be available at http://localhost:8080/claude-best-practices-slides.html"
+        echo "🎯 Presenter view: Add ?present=true to the URL for presenter mode"
         echo "📄 Other markdown files will be available as scrollable pages"
         echo "🔄 Auto-reload enabled - changes to markdown will refresh slides"
         echo "⏹️  Press Ctrl+C to stop"
