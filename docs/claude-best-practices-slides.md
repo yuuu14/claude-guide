@@ -16,7 +16,7 @@ section {
 # Claude Code 个人使用心得
 
 <!--
-大家好，今天我来做一点关于使用 Claude Code 来做Python项目开发的分享。
+大家好，今天我来做一个比较简短的关于使用 Claude Code 来做Python项目开发的分享。
 -->
 
 ---
